@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}History - AI Interview Analyser{% endblock %}
+{% block content %}
+  <h2>History</h2>
+  {% if analyses %}
+    <table>
+      <thead><tr><th>Timestamp</th><th>Score</th><th>Answer</th></tr></thead>
+      <tbody>
+      {% for a in analyses %}
+        <tr>
+          <td>{{ a.timestamp }}</td>
+          <td>{{ a.result.score if a.result.score is defined else a.result.overall_score }}</td>
+          <td>{{ a.answer[:120] }}</td>
+          <td>
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('generate_report') }}?timestamp={{ a.timestamp }}">Download PDF</a>
+            <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('export_item_csv') }}?timestamp={{ a.timestamp }}">CSV</a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No history available.</p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,18 @@
+[
+  {
+    "timestamp": "2026-07-10T18:19:43.126885Z",
+    "answer": "Test answer from automated test",
+    "result": {
+      "score": 7,
+      "strengths": [
+        "Relevant experience",
+        "Clear communication"
+      ],
+      "weaknesses": [
+        "Lacks metrics",
+        "Could show more technical depth"
+      ],
+      "improved_answer": "(mock) Test answer from automated test"
+    }
+  }
+]

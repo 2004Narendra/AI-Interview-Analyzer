@@ -1,0 +1,6 @@
+Flask
+python-dotenv
+requests
+reportlab
+PyPDF2
+pytest

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Mock Interview - AI Interview Analyser{% endblock %}
+{% block content %}
+  <h2>Mock Interview</h2>
+  {% if completed %}
+    <p>Mock interview completed. Review the report below.</p>
+    <pre>{{ report }}</pre>
+  {% else %}
+    <div id="mock-root">
+      <p id="question">Question: {{ question }}</p>
+      <div class="d-flex gap-2 mb-2">
+        <button id="listen-btn" class="btn btn-sm btn-outline-secondary" title="Listen">Listen <i class="bi bi-volume-up-fill"></i></button>
+        <button id="record-btn" class="btn btn-sm btn-outline-secondary" title="Record">Record <i class="bi bi-mic-fill"></i></button>
+      </div>
+      <textarea id="answer" rows="4" class="form-control"></textarea>
+      <div class="mt-2">
+        <button id="submit-answer" class="btn btn-primary">Submit Answer</button>
+        <button id="reset-mock" class="btn btn-link">Restart</button>
+      </div>
+      <div id="final-report" class="mt-3" style="display:none"></div>
+    </div>
+    <script>
+      (function(){
+        const questionEl = document.getElementById('question');
+        const answerEl = document.getElementById('answer');
+        const submitBtn = document.getElementById('submit-answer');
+        const resetBtn = document.getElementById('reset-mock');
+        const reportEl = document.getElementById('final-report');
+
+        let recognition = null;
+        let recognizing = false;
+
+        function speakText(text) {
+          try {
+            const ut = new SpeechSynthesisUtterance(text);
+            ut.lang = 'en-US';
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(ut);
+          } catch (e) {
+            console.warn('TTS not available', e);
+          }
+        }
+
+        const listenBtn = document.getElementById('listen-btn');
+        const recordBtn = document.getElementById('record-btn');
+        if (listenBtn) listenBtn.addEventListener('click', function(){
+          const q = questionEl.textContent.replace(/^Question:\s*/i, '');
+          speakText(q);
+        });
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+          const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+          recognition = new Rec();
+          recognition.lang = 'en-US';
+          recognition.interimResults = false;
+          recognition.maxAlternatives = 1;
+          recognition.onresult = function(event){
+            const text = event.results[0][0].transcript || '';
+            answerEl.value = (answerEl.value ? answerEl.value + ' ' : '') + text;
+          };
+          recognition.onend = function(){ recognizing = false; recordBtn.textContent = 'Record '; recordBtn.classList.remove('btn-danger'); };
+        } else {
+          recognition = null;
+          recordBtn.disabled = true;
+        }
+
+        function toggleRecording(){
+          if (!recognition) return;
+          if (recognizing) {
+            recognition.stop();
+          } else {
+            recognition.start();
+            recognizing = true;
+            recordBtn.textContent = 'Stop '; recordBtn.classList.add('btn-danger');
+          }
+        }
+
+        recordBtn.addEventListener('click', toggleRecording);
+
+        function submitAnswer() {
+          const answer = answerEl.value.trim();
+          if (!answer) { alert('Please enter an answer'); return; }
+          submitBtn.disabled = true;
+          fetch('/mock-interview/answer', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({answer})})
+            .then(r => r.json())
+            .then(data => {
+              submitBtn.disabled = false;
+              if (data.error) { alert(data.error); return; }
+              if (data.completed) {
+                reportEl.style.display = 'block';
+                reportEl.innerHTML = '<h4>Final Report</h4><pre>' + JSON.stringify(data.report, null, 2) + '</pre>';
+                questionEl.style.display = 'none';
+                answerEl.style.display = 'none';
+                submitBtn.style.display = 'none';
+                listenBtn.style.display = 'none';
+                recordBtn.style.display = 'none';
+              } else {
+                questionEl.textContent = 'Question: ' + data.question;
+                answerEl.value = '';
+                answerEl.focus();
+              }
+            })
+            .catch(err => { submitBtn.disabled = false; alert('Network error'); });
+        }
+
+        submitBtn.addEventListener('click', submitAnswer);
+        resetBtn.addEventListener('click', function(){
+          fetch('/mock-interview/reset', {method: 'POST'}).then(()=> location.reload());
+        });
+        answerEl.focus();
+      })();
+    </script>
+  {% endif %}
+{% endblock %}

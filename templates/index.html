@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Home - AI Interview Analyser{% endblock %}
+{% block content %}
+  <section>
+    <h2>Analyze an Answer</h2>
+    <form action="/analyze" method="post">
+      <textarea name="answer" rows="6" cols="80" placeholder="Paste candidate answer here">{{ answer or '' }}</textarea>
+      <br>
+      <button type="submit">Analyze</button>
+    </form>
+    {% if result %}
+      <h3>Result</h3>
+      <pre>{{ result }}</pre>
+    {% endif %}
+  </section>
+
+  <section class="mt-4">
+    <div class="row">
+      <div class="col-lg-4">
+        <h4>Overview</h4>
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="card-title">Overall Score</h5>
+            <div id="overall-score" class="fs-3">-</div>
+            <h6 class="mt-3">Progress</h6>
+            <div class="progress">
+              <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+            <h6 class="mt-3">Total interviews</h6>
+            <div id="total-interviews">-</div>
+            <h6 class="mt-3">Average score</h6>
+            <div id="average-score">-</div>
+          </div>
+        </div>
+
+        <h5>Skill Breakdown</h5>
+        <ul id="skill-breakdown" class="list-group"></ul>
+      </div>
+      <div class="col-lg-8">
+        <h4>Trends</h4>
+        <div class="card mb-3 p-3">
+          <canvas id="scoreChart" height="120"></canvas>
+        </div>
+        <div class="card p-3">
+          <canvas id="weaknessChart" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-4">
+    <h4>Resume Analysis</h4>
+    <form action="/resume-analysis" method="post" enctype="multipart/form-data">
+      <div class="mb-2">
+        <label class="form-label">Upload Resume (PDF or TXT)</label>
+        <input type="file" name="resume" class="form-control" accept=".pdf,.txt" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Related Answer (optional)</label>
+        <textarea name="answer" class="form-control" rows="3">{{ answer or '' }}</textarea>
+      </div>
+      <button class="btn btn-secondary" type="submit">Analyze Resume</button>
+    </form>
+    {% if resume_result %}
+      <div class="card mt-3">
+        <div class="card-body">
+          <h5 class="card-title">Resume Insights</h5>
+          <p><strong>Resume score:</strong> {{ resume_result.resume_score }}</p>
+          <p><strong>Matched skills:</strong> {{ resume_result.matched_skills | join(', ') }}</p>
+          <p><strong>Missing skills:</strong> {{ resume_result.missing_skills | join(', ') }}</p>
+          <p><strong>Suggestions:</strong></p>
+          <ul>
+            {% for s in resume_result.suggestions %}
+              <li>{{ s }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+    <section class="mt-3">
+      {% if session.latest_result %}
+        <a class="btn btn-success" href="{{ url_for('generate_report') }}">Download Latest Report (PDF)</a>
+      {% endif %}
+    </section>
+
+    <section class="mt-4">
+      <h4>Job Description Matching</h4>
+      <form action="/job-match" method="post">
+        <div class="mb-2">
+          <label class="form-label">Paste Resume Text</label>
+          <textarea name="resume_text" class="form-control" rows="4">{{ '' }}</textarea>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Paste Job Description</label>
+          <textarea name="job_description" class="form-control" rows="6"></textarea>
+        </div>
+        <button class="btn btn-secondary" type="submit">Calculate Match</button>
+      </form>
+      {% if match_result %}
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Match: {{ match_result.match_percentage }}%</h5>
+            <p><strong>Summary:</strong> {{ match_result.summary }}</p>
+            <p><strong>Matched keywords:</strong> {{ match_result.matched_keywords | join(', ') }}</p>
+            <p><strong>Missing keywords:</strong> {{ match_result.missing_keywords | join(', ') }}</p>
+            {% if match_result.suggested_improvements %}
+              <p><strong>Suggestions:</strong></p>
+              <ul>
+                {% for s in match_result.suggested_improvements %}
+                  <li>{{ s }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </section>
+
+      <section class="mt-4">
+        <h4>Coding Interview</h4>
+        <form action="/coding-interview" method="post">
+          <div class="mb-2">
+            <label class="form-label">Select Question</label>
+            <select name="question_id" class="form-select">
+              {% for q in coding_questions %}
+                <option value="{{ q.id }}">{{ q.title }} - {{ q.description }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Your Code</label>
+            <textarea name="code" class="form-control" rows="8">{% if coding_result %}{{ coding_result.code }}{% endif %}</textarea>
+          </div>
+          <button class="btn btn-primary" type="submit">Run Tests</button>
+        </form>
+
+        {% if coding_result %}
+          <div class="card mt-3">
+            <div class="card-body">
+              <h5 class="card-title">Result: {{ 'Passed' if coding_result.passed else 'Failed' }}</h5>
+              <p><strong>Feedback:</strong> {{ coding_result.feedback }}</p>
+              {% if coding_result.details %}
+                <h6>Test details</h6>
+                <ul>
+                  {% for r in coding_result.details.results %}
+                    <li>Args: {{ r.args }} — expected: {{ r.expected }} — actual: {{ r.actual }} — {{ 'OK' if r.passed else 'FAIL' }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      </section>
+
+  {% endblock %}
