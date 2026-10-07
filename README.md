@@ -1,123 +1,139 @@
-# AI Interview Analyser
+# AI Interview Analyzer
 
-Simple Flask app that evaluates interview answers using OpenRouter (or mock mode).
+A Flask-based web application that evaluates interview answers using an LLM API and provides structured feedback such as score, strengths, weaknesses, and improved responses.
 
-Quick start
+This project is designed to help users practice interviews, review their answers, and track performance over time.
 
-1. Create and activate a Python virtualenv.
+## Features
 
-```powershell
-python -m venv venv
-& .\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+- Interview answer analysis using OpenRouter or mock mode
+- Score breakdown with feedback
+- Strengths and weaknesses summary
+- Improved answer suggestion
+- History tracking for previous analyses
+- CSV export for saved results
+- Optional login for protected access
+- Dark mode and improved UI experience
+- Chart-based score trend visualization
+
+## Tech Stack
+
+- Python
+- Flask
+- Bootstrap
+- OpenRouter API
+- Chart.js
+- SQLite / file-based persistence
+
+## Project Structure
+
+```text
+.
+├── app.py
+├── requirements.txt
+├── .env.example
+├── templates/
+│   ├── index.html
+│   ├── history.html
+│   └── login.html
+├── static/
+│   ├── css/
+│   └── js/
+├── README.md
+├── Dockerfile
+├── docker-compose.yml
+└── .env
 ```
-
-2. Create a `.env` file with your OpenRouter key (optional if using mock mode):
-
-```
-OPENROUTER_API_KEY=sk-or-...
-# or to force mock mode for development
-MOCK_MODE=1
-```
-
-3. Run the app:
-
-```powershell
-& .\venv\Scripts\python.exe app.py
-```
-
-4. Visit `http://127.0.0.1:5000` and try the analyzer.
-
-Features added by the helper agent:
-- CSV export (`/export_csv`)
-- Per-item delete from history
-- Per-item copy buttons in history
-- Mock mode for offline development
-# AI Interview Analyser
-
-A small Flask app that evaluates interview answers using OpenRouter.
 
 ## Setup
 
 1. Create a virtual environment:
-   ```powershell
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
-   ```
-2. Install dependencies:
-   ```powershell
-   pip install -r requirements.txt
-   ```
-3. Add your OpenRouter API key to `.env`:
-   ```text
-   OPENROUTER_API_KEY=your_openrouter_api_key_here
-   ```
-4. Run the app:
-   ```powershell
-   python app.py
-   ```
 
-## Usage
-
-- Open `http://127.0.0.1:5000/`
-- Paste your interview answer into the textarea
-- Click `Analyze Answer`
-- Review the score, strengths, weaknesses, and improved answer
-
-## New UI features
-
-- Better styling: the app uses Bootstrap for a cleaner UI.
-- Dark mode: toggle with the moon button in the header; preference is saved locally.
-- Charts: the history page shows a trend line of saved scores (Chart.js).
-- Optional login: enable a simple session-based login via environment variables.
-
-To enable login, create a `.env` (copy `.env.example`) and set `LOGIN_ENABLED=1`, and set `ADMIN_USER`/`ADMIN_PASS`.
-
-Example `.env` values:
-
+```bash
+python -m venv venv
+source venv/bin/activate
 ```
+
+On Windows PowerShell:
+
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Configure environment variables:
+
+Create a `.env` file in the project root.
+
+```env
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+# Optional for local testing without API access
+MOCK_MODE=1
+```
+
+Optional login variables:
+
+```env
 LOGIN_ENABLED=1
 ADMIN_USER=admin
 ADMIN_PASS=supersecret
-SECRET_KEY=replace-with-random-secret
+SECRET_KEY=replace-with-a-random-secret
 ```
 
-Notes:
-- Chart rendering uses a CDN-hosted Chart.js; no extra Python dependency is required.
-- For production, run behind a WSGI server (e.g. `gunicorn`) and set a strong `SECRET_KEY`.
-## Notes
+## Run the App
 
-- This app now uses OpenRouter instead of Google Gemini.
-- If you do not have an OpenRouter key, sign up at `https://openrouter.ai/` and create a free API key.
-- Keep `debug=True` only for development.
+```bash
+python app.py
+```
+
+Then open:
+
+```text
+http://127.0.0.1:5000
+```
+
+## Usage
+
+- Paste your interview answer into the form
+- Click "Analyze Answer"
+- Review the evaluation, strengths, weaknesses, and improved answer
+- Save and browse your analysis history
+
+## Development Notes
+
+- If no OpenRouter API key is configured, the app can run in mock mode for development.
+- For production, set a strong `SECRET_KEY` and avoid storing secrets in source control.
+- The project is suitable for local development and can also run using Docker.
 
 ## Docker
 
-Run the app using Docker (recommended for consistent environments):
-
-Build the image:
+Build and run:
 
 ```bash
-docker build -t ai-interview-analyser:latest .
+docker build -t ai-interview-analyzer:latest .
+docker run -p 5000:5000 -e MOCK_MODE=1 ai-interview-analyzer:latest
 ```
 
-Run with Docker:
-
-```bash
-docker run -p 5000:5000 -e MOCK_MODE=1 ai-interview-analyser:latest
-```
-
-Or use `docker-compose` for development (mounts current directory):
+Or use Docker Compose:
 
 ```bash
 docker-compose up --build
 ```
 
-The app will then be available at `http://127.0.0.1:5000`.
+## License
 
-## Deployment notes
+This project is currently provided for educational and portfolio use.
 
-- The Docker image runs the app with `gunicorn`.
-- For production, provide a secure `SECRET_KEY` and configure environment variables (do not commit secrets).
-- Consider placing the app behind a reverse proxy (nginx) and enabling TLS.
+## Portfolio Use
 
+This project is a strong example of:
+- AI application design
+- Python backend development
+- UI/UX and interaction workflow design
+- practical AI product thinking
